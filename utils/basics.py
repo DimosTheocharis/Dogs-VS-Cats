@@ -12,3 +12,27 @@ def displayImage(image: torch.Tensor | Any):
         plt.imshow(image)
         plt.axis('off')
         plt.show()
+
+
+
+def measureAccuracy(predictions: torch.Tensor, labels: torch.Tensor) -> float:
+    '''
+        Measure the accuracy of the predictions against the true labels.
+
+        @param predictions: The predicted outputs from the model (values between 0 and 1)
+        @param labels: The true labels (values 0 or 1)
+
+        @return: The accuracy as a float value between 0 and 1.
+    '''
+    # Convert predictions to binary (0 or 1) using a threshold of 0.5
+    predictedClasses = predictions.clone()
+    predictedClasses[predictedClasses >= 0.5] = 1
+    predictedClasses[predictedClasses < 0.5] = 0
+
+    # Calculate the number of correct predictions
+    correct_predictions = predictedClasses.eq(labels).sum().item()
+    
+    # Calculate accuracy
+    accuracy = correct_predictions / labels.size(0)
+    
+    return accuracy
