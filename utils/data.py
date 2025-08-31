@@ -1,4 +1,5 @@
 import torchvision
+import torch
 from torch.utils.data import DataLoader, random_split
 from utils.basics import displayImage
 
@@ -29,6 +30,8 @@ def loadData(folderPath: str, splitPercentages: list[float], batchSize: int) -> 
         transform=transoforms
     )
 
+    print(len(dataset))
+
     # Create the ImageFolder datasets
     datasets: list[torchvision.datasets.ImageFolder] = random_split(dataset, splitPercentages)
 
@@ -38,3 +41,28 @@ def loadData(folderPath: str, splitPercentages: list[float], batchSize: int) -> 
     ]
         
     return loaders
+
+
+def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor]:
+    '''
+        Extracts all images and labels from a DataLoader and returns them as tensors.
+
+        @param loader: The DataLoader to extract data from.
+
+        @return: A tuple containing two tensors:
+            - images: A tensor of shape (N, C, H, W) where N is the number of images,
+              C is the number of channels, H is the height, and W is the width.
+            - labels: A tensor of shape (N,) containing the corresponding labels for each image (values 0 or 1)
+    '''
+    images = []
+    labels = []
+
+    for batchImages, batchLabels in loader:
+        images.append(batchImages)
+        labels.append(batchLabels)
+
+    # Concatenate all batches into single tensors
+    imagesTensor = torch.cat(images)
+    labelsTensor = torch.cat(labels)
+
+    return imagesTensor, labelsTensor

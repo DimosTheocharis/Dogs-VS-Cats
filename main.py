@@ -1,29 +1,22 @@
 import random
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
+from time import time
 
 from utils.basics import displayImage, measureAccuracy
-from utils.data import loadData
+from utils.data import loadData, extractDataFromLoader
 from config import Config
 from cnn import ConvolutionalNeuralNetwork, LayerType, ActivationFunction
+from logger import Logger
 
 random.seed(21)
 torch.manual_seed(21)
 
-trainLoader, validationLoader, testLoader = loadData(Config.DATASET_PATH, [0.2, 0.05, 0.75], batchSize=Config.BATCH_SIZE)
+trainLoader, validationLoader, testLoader = loadData(Config.DATASET_PATH, [Config.TRAINING_SPLIT, Config.VALIDATION_SPLIT, Config.TEST_SPLIT], batchSize=Config.BATCH_SIZE)
 
-print(f"Number of training batches: {len(trainLoader)}")
-print(f"Number of validation batches: {len(validationLoader)}")
-print(f"Number of test batches: {len(testLoader)}")
-
-validationImages = []
-validationLabels = []
-for images, labels in validationLoader:
-    validationImages.append(images)
-    validationLabels.append(labels)
-
-validationImages = torch.cat(validationImages)
-validationLabels = torch.cat(validationLabels)
+# Combine all batches of the validation set into single tensors
+validationImages, validationLabels = extractDataFromLoader(validationLoader)
 
 
 model = ConvolutionalNeuralNetwork(
@@ -57,30 +50,46 @@ model = ConvolutionalNeuralNetwork(
           "batchNorm": False
       }
     ],
-    epochs=20,
+    epochs=5,
     learningRate=0.001,
     batchSize=Config.BATCH_SIZE,
     weightDecay=0.0001
 )
 
-print(model)
+logger = Logger("logs/firstModel", "trainingResults", appendTimestamp=True)
+
+logger.logData([
+    f"Model structure: {model}",
+    "\n\n",
+    f"\nTraining samples: {len(trainLoader.dataset)}",
+    f"\nValidation samples: {len(validationLoader.dataset)}"
+], printToConsole=True)
+
 
 ######################################## TRAINING THE MODEL ########################################
 train = True
+
+
 
 if (train):
     # I will calculate the loss of my network's prediction with Binary Cross-Entropy Loss
     criterion: torch.nn.BCEWithLogitsLoss = torch.nn.BCEWithLogitsLoss()
 
-
     # Set Adam as optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=model._learningRate, weight_decay=model._weightDecay)
+
+    trainingLosses: list[float] = []
+    validationLosses: list[float] = []
+    trainingAccuracies: list[float] = [] # How well the model performs each epoch on the training set
+    validationAccuracies: list[float] = [] # How well the model performs each epoch on unseen data (the validation set)
+
+    start = time()
 
     # For each epoch
     for epoch in range(model._epochs):
         model.train()
-        trainingLosses: list[float] = []
-        accuracies = []
+        batchTrainingLosses: list[float] = []
+        batchTrainingAccuracies = []
 
         # For each batch in the training set
         for index, (batchImages, batchLabels) in enumerate(trainLoader):
@@ -88,32 +97,67 @@ if (train):
             model.zero_grad()
             
             # Forward pass (remove the extra dimension)
-            trainPredictions = model(batchImages).squeeze()
+            trainingPredictions = model(batchImages).squeeze()
 
+            # Compute the loss in this batch (also provide same data types)
+            trainingLoss = criterion(trainingPredictions, batchLabels.type_as(trainingPredictions))
+            batchTrainingLosses.append(trainingLoss.item())
 
-            # Compute the loss (also provide same data types)
-            loss = criterion(trainPredictions, batchLabels.type_as(trainPredictions))
-            trainingLosses.append(loss.item())
+            # Transform raw logits to probabilities
+            trainingPredictions = nn.functional.sigmoid(trainingPredictions)
 
-
-
-            # Compute the model's accuracy in this batch
-            batchAccuracy = measureAccuracy(trainPredictions, batchLabels)
-            accuracies.append(batchAccuracy)
+            # Compute the model's accuracy in this batch of training set
+            batchTrainingAccuracy = measureAccuracy(trainingPredictions, batchLabels)
+            batchTrainingAccuracies.append(batchTrainingAccuracy)
 
             # Back propagation
-            loss.backward()
+            trainingLoss.backward()
             optimizer.step()
         
-        trainingAccuracy = sum(accuracies) / len(accuracies)
+        # Compute the model's accuracy in this epoch of training set
+        trainingAccuracy = sum(batchTrainingAccuracies) / len(batchTrainingAccuracies)
+        trainingAccuracies.append(trainingAccuracy)
+
+        trainingLoss = sum(batchTrainingLosses) / len(batchTrainingLosses)
+        trainingLosses.append(trainingLoss)
 
         # Validate the model
         model.eval()
         with torch.no_grad():
-            validationPredictions = nn.functional.sigmoid(model(validationImages)).squeeze()
+            validationPredictions = model(validationImages).squeeze()
+
+            # Compute the validation loss
+            validationLoss = criterion(validationPredictions, validationLabels.type_as(validationPredictions))
+            validationLosses.append(validationLoss.item())
+
+            # Transform raw logits to probabilities
+            validationPredictions = nn.functional.sigmoid(validationPredictions)
+
+            # Compute the model's accuracy in this epoch of training set
             validationAccuracy = measureAccuracy(validationPredictions, validationLabels)
+            validationAccuracies.append(validationAccuracy)
+
+        # Log the results
+        logger.logData([
+            f"\nEpoch [{epoch+1}/{model._epochs}]",
+            f"\nTraining Loss: {trainingLoss:.4f}",
+            f"\nTraining Accuracy: {trainingAccuracy:.4f}",
+            f"\nValidation Accuracy: {validationAccuracy:.4f}"
+        ], printToConsole=True)
 
 
-        print(f"Epoch [{epoch+1}/{model._epochs}], Training Loss: {sum(trainingLosses)/len(trainingLosses):.4f}, Training Accuracy: {trainingAccuracy:.4f}, Validation Accuracy: {validationAccuracy:.4f}")
-        
+    end = time()
+
+    print(f"Training duration: {end - start:.2f} seconds")
+
+    # Plot the training results
+    plt.plot(range(1, model._epochs + 1), trainingLosses, color='red', label='Training Loss')
+    plt.plot(range(1, model._epochs + 1), trainingAccuracies, color='blue', label='Training Accuracy')
+    plt.plot(range(1, model._epochs + 1), validationAccuracies, color='green', label='Validation Accuracy')
+    plt.plot(range(1, model._epochs + 1), validationLosses, color='orange', label='Validation Loss')
+    plt.legend()
+    plt.title('Training Loss over Epochs')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.show()
 

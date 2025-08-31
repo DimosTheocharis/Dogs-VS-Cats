@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 from typing import Any
-
+from datetime import datetime
 
 def displayImage(image: torch.Tensor | Any):
     if isinstance(image, torch.Tensor):
@@ -36,3 +36,7 @@ def measureAccuracy(predictions: torch.Tensor, labels: torch.Tensor) -> float:
     accuracy = correct_predictions / labels.size(0)
     
     return accuracy
+
+
+def getCurrentTimeRepresentation() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H.%M")
