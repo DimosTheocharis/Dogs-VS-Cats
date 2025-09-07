@@ -1,82 +1,30 @@
-import random
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 from time import time
+import os
 
-from utils.basics import displayImage, measureAccuracy
-from utils.data import loadData, extractDataFromLoader
-from config import Config
-from cnn import ConvolutionalNeuralNetwork, LayerType, ActivationFunction
-from logger import Logger
+from src.cnn import ConvolutionalNeuralNetwork
+from src.utils.basics import measureAccuracy, plotGraph, getCurrentTimeRepresentation
+from src.logger import Logger
 
-random.seed(21)
-torch.manual_seed(21)
+def runExperiment(
+    experimentId: int,
+    model: ConvolutionalNeuralNetwork,
+    trainLoader: torch.utils.data.DataLoader,
+    validationImages: torch.Tensor,
+    validationLabels: torch.Tensor,
+):
+    experimentName = setupExperiment(experimentId)
 
-trainLoader, validationLoader, testLoader = loadData(Config.DATASET_PATH, [Config.TRAINING_SPLIT, Config.VALIDATION_SPLIT, Config.TEST_SPLIT], batchSize=Config.BATCH_SIZE)
+    # Define the logger
+    logger = Logger(f"experiments/{experimentName}", "logs", appendTimestamp=False)
 
-# Combine all batches of the validation set into single tensors
-validationImages, validationLabels = extractDataFromLoader(validationLoader)
-
-
-model = ConvolutionalNeuralNetwork(
-    layers=[
-      # 3x128x128
-      {
-        "type": LayerType.Convolutional,
-        "inChannels": 3,
-        "outChannels": 32,
-        "kernelSize": 3,
-        "stride": 1,
-        "padding": 1,
-        "activationFunction": ActivationFunction.ReLU,
-        "batchNorm": False
-      },
-      # 32x128x128
-      {
-        "type": LayerType.MaxPooling,
-        "kernelSize": 8,
-        "stride": 8
-      },
-      # 32x32x32
-      {
-          "type": LayerType.Flatten
-      },
-      {
-          "type": LayerType.Linear,
-          "inFeatures": 32 * (Config.IMAGE_SIZE // 8) * (Config.IMAGE_SIZE // 8),
-          "outFeatures": 1,
-          "activationFunction": None,
-          "batchNorm": False
-      }
-    ],
-    epochs=5,
-    learningRate=0.001,
-    batchSize=Config.BATCH_SIZE,
-    weightDecay=0.0001
-)
-
-logger = Logger("logs/firstModel", "trainingResults", appendTimestamp=True)
-
-logger.logData([
-    f"Model structure: {model}",
-    "\n\n",
-    f"\nTraining samples: {len(trainLoader.dataset)}",
-    f"\nValidation samples: {len(validationLoader.dataset)}"
-], printToConsole=True)
-
-
-######################################## TRAINING THE MODEL ########################################
-train = True
-
-
-
-if (train):
     # I will calculate the loss of my network's prediction with Binary Cross-Entropy Loss
     criterion: torch.nn.BCEWithLogitsLoss = torch.nn.BCEWithLogitsLoss()
 
     # Set Adam as optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=model._learningRate, weight_decay=model._weightDecay)
+
 
     trainingLosses: list[float] = []
     validationLosses: list[float] = []
@@ -148,16 +96,34 @@ if (train):
 
     end = time()
 
-    print(f"Training duration: {end - start:.2f} seconds")
+    logger.logData([f"\n\nTraining duration: {end - start:.2f} seconds"], printToConsole=True)
 
     # Plot the training results
-    plt.plot(range(1, model._epochs + 1), trainingLosses, color='red', label='Training Loss')
-    plt.plot(range(1, model._epochs + 1), trainingAccuracies, color='blue', label='Training Accuracy')
-    plt.plot(range(1, model._epochs + 1), validationAccuracies, color='green', label='Validation Accuracy')
-    plt.plot(range(1, model._epochs + 1), validationLosses, color='orange', label='Validation Loss')
-    plt.legend()
-    plt.title('Training Loss over Epochs')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.show()
+    plotGraph(
+        xValues=list(range(1, model._epochs + 1)),
+        yValuesList=[trainingLosses, trainingAccuracies, validationAccuracies, validationLosses],
+        colors=['red', 'blue', 'green', 'orange'],
+        labels=['Training Loss', 'Training Accuracy', 'Validation Accuracy', 'Validation Loss'],
+        title='Training Results over Epochs',
+        xLabel='Epochs',
+        yLabel='Value'
+    )
 
+
+
+def setupExperiment(id: int, appendTimestamp: bool = True) -> str:
+    '''
+        Creates the experiment directory.
+
+        @returns the experiment name.
+    '''
+    experimentName = f"experiment_{str(id).zfill(2)}"
+    if (appendTimestamp):
+        experimentName += " " + getCurrentTimeRepresentation()
+    
+    experimentFilePath = f"experiments/{experimentName}"
+
+    if not os.path.exists(experimentFilePath):
+        os.makedirs(experimentFilePath)
+    
+    return experimentName 

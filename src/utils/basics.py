@@ -40,3 +40,27 @@ def measureAccuracy(predictions: torch.Tensor, labels: torch.Tensor) -> float:
 
 def getCurrentTimeRepresentation() -> str:
     return datetime.now().strftime("%Y-%m-%d %H.%M")
+
+
+def plotGraph(xValues: list[float], yValuesList: list[list[float]], colors: list[str], labels: list[str], title: str, xLabel: str, yLabel: str):
+    '''
+        Plots a graph with multiple lines.
+
+        @param xValues: The x values for the graph.
+        @param yValuesList: A list of lists, where each inner list contains the y values for a graph-line.
+        @param colors: A list of colors for each graph-line.
+        @param labels: A list of labels for each graph-line.
+        @param title: The title of the graph.
+        @param xLabel: The label for the x axis.
+        @param yLabel: The label for the y axis.
+    '''
+    plt.figure()
+    for yValues, color, label in zip(yValuesList, colors, labels):
+        plt.plot(xValues, yValues, color=color, label=label)
+    
+    plt.title(title)
+    plt.xlabel(xLabel)
+    plt.ylabel(yLabel)
+    plt.legend()
+    plt.grid(True)
+    plt.show()

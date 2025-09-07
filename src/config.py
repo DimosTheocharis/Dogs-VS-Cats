@@ -1,6 +1,7 @@
+import os
 
 class Config:
-    DATASET_PATH = "data/PetImages"
+    DATASET_PATH = os.path.join("data", "PetImages")
     IMAGE_SIZE = 32
     TOTAL_IMAGES = 24998
 

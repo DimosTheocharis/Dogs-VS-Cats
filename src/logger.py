@@ -1,6 +1,6 @@
 from typing import List
 import os
-from utils.basics import getCurrentTimeRepresentation
+from src.utils.basics import getCurrentTimeRepresentation
 
 
 class Logger(object):
