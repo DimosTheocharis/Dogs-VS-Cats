@@ -9,6 +9,6 @@ class Config:
     BATCH_SIZE = 128
 
     # Data parameters
-    TRAINING_SPLIT = 0.8
-    VALIDATION_SPLIT = 0.1
-    TEST_SPLIT = 0.1
+    TRAINING_SPLIT = 0.1
+    VALIDATION_SPLIT = 0.05
+    TEST_SPLIT = 0.85

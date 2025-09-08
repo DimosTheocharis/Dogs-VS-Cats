@@ -4,7 +4,7 @@ from time import time
 import os
 
 from src.cnn import ConvolutionalNeuralNetwork
-from src.utils.basics import measureAccuracy, plotGraph, getCurrentTimeRepresentation
+from src.utils.basics import measureAccuracy, saveGraph, getCurrentTimeRepresentation, saveModel
 from src.logger import Logger
 
 def runExperiment(
@@ -18,6 +18,14 @@ def runExperiment(
 
     # Define the logger
     logger = Logger(f"experiments/{experimentName}", "logs", appendTimestamp=False)
+
+    # Log the model structure and dataset information
+    logger.logData([
+        f"Model structure: {model}",
+        "\n\n",
+        f"\nTraining samples: {len(trainLoader.dataset)}",
+        f"\nValidation samples: {len(validationImages)}"
+    ], printToConsole=True)
 
     # I will calculate the loss of my network's prediction with Binary Cross-Entropy Loss
     criterion: torch.nn.BCEWithLogitsLoss = torch.nn.BCEWithLogitsLoss()
@@ -35,6 +43,7 @@ def runExperiment(
 
     # For each epoch
     for epoch in range(model._epochs):
+        print(epoch)
         model.train()
         batchTrainingLosses: list[float] = []
         batchTrainingAccuracies = []
@@ -99,15 +108,20 @@ def runExperiment(
     logger.logData([f"\n\nTraining duration: {end - start:.2f} seconds"], printToConsole=True)
 
     # Plot the training results
-    plotGraph(
+    saveGraph(
         xValues=list(range(1, model._epochs + 1)),
         yValuesList=[trainingLosses, trainingAccuracies, validationAccuracies, validationLosses],
         colors=['red', 'blue', 'green', 'orange'],
         labels=['Training Loss', 'Training Accuracy', 'Validation Accuracy', 'Validation Loss'],
         title='Training Results over Epochs',
         xLabel='Epochs',
-        yLabel='Value'
+        yLabel='Value',
+        fileName=f"experiments/{experimentName}/training.png"
     )
+
+
+    # Save the trained model
+    saveModel(model, f"experiments/{experimentName}/model.pth")
 
 
 

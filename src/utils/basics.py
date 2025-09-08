@@ -42,9 +42,9 @@ def getCurrentTimeRepresentation() -> str:
     return datetime.now().strftime("%Y-%m-%d %H.%M")
 
 
-def plotGraph(xValues: list[float], yValuesList: list[list[float]], colors: list[str], labels: list[str], title: str, xLabel: str, yLabel: str):
+def saveGraph(xValues: list[float], yValuesList: list[list[float]], colors: list[str], labels: list[str], title: str, xLabel: str, yLabel: str, fileName: str):
     '''
-        Plots a graph with multiple lines.
+        Saves a graph with multiple lines.
 
         @param xValues: The x values for the graph.
         @param yValuesList: A list of lists, where each inner list contains the y values for a graph-line.
@@ -53,6 +53,7 @@ def plotGraph(xValues: list[float], yValuesList: list[list[float]], colors: list
         @param title: The title of the graph.
         @param xLabel: The label for the x axis.
         @param yLabel: The label for the y axis.
+        @param fileName: The name of the file to save the graph to.
     '''
     plt.figure()
     for yValues, color, label in zip(yValuesList, colors, labels):
@@ -63,4 +64,26 @@ def plotGraph(xValues: list[float], yValuesList: list[list[float]], colors: list
     plt.ylabel(yLabel)
     plt.legend()
     plt.grid(True)
-    plt.show()
+
+    plt.savefig(fileName)
+
+
+def saveModel(model: torch.nn.Module, path: str) -> None:
+    '''
+        Saves the model to the specified path.
+
+        @param model: The model to save.
+        @param path: The path to save the model to.
+    '''
+    torch.save(model.state_dict(), path)
+
+
+def loadModel(model: torch.nn.Module, path: str) -> None:
+    '''
+        Loads the learnt paramemeters from the specified path into the given model.
+
+        @param model: The model to load the state dict into.
+        @param path: The path to load the model from.
+    '''
+    model.load_state_dict(torch.load(path, weights_only=False))
+    model.eval()

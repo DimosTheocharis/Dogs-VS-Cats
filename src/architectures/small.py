@@ -47,7 +47,6 @@ class SmallArchitecture(BaseArchitecture):
 			}
 		]
 	) -> None:
-		print("pw re file")
 		super().__init__(
 			name=name,
 			id=id,
