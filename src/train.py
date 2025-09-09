@@ -6,6 +6,8 @@ import os
 from src.cnn import ConvolutionalNeuralNetwork
 from src.utils.basics import measureAccuracy, saveGraph, getCurrentTimeRepresentation, saveModel
 from src.logger import Logger
+from src.components.earlyStopper import EarlyStopper
+from src.config import Config
 
 def runExperiment(
     experimentId: int,
@@ -13,19 +15,24 @@ def runExperiment(
     trainLoader: torch.utils.data.DataLoader,
     validationImages: torch.Tensor,
     validationLabels: torch.Tensor,
+    earlyStopping: bool = False
 ):
     experimentName = setupExperiment(experimentId)
 
     # Define the logger
-    logger = Logger(f"experiments/{experimentName}", "logs", appendTimestamp=False)
+    logger = Logger(f"{Config.EXPERIMENTS_FOLDER}/{experimentName}", "logs", appendTimestamp=False)
 
     # Log the model structure and dataset information
     logger.logData([
         f"Model structure: {model}",
         "\n\n",
         f"\nTraining samples: {len(trainLoader.dataset)}",
-        f"\nValidation samples: {len(validationImages)}"
+        f"\nValidation samples: {len(validationImages)}",
+        f"\nEarly stopping: {'Enabled' if earlyStopping else 'Disabled'}"
     ], printToConsole=True)
+
+    if (earlyStopping):
+        earlyStopper: EarlyStopper = EarlyStopper(patience=Config.EARLY_STOPPING_PATIENCE)
 
     # I will calculate the loss of my network's prediction with Binary Cross-Entropy Loss
     criterion: torch.nn.BCEWithLogitsLoss = torch.nn.BCEWithLogitsLoss()
@@ -41,9 +48,11 @@ def runExperiment(
 
     start = time()
 
+    epochsRun: int = 0 # How many epochs the experiment run for, before stopped by early stopping (if activated)
+
     # For each epoch
     for epoch in range(model._epochs):
-        print(epoch)
+        epochsRun += 1
         model.train()
         batchTrainingLosses: list[float] = []
         batchTrainingAccuracies = []
@@ -98,9 +107,16 @@ def runExperiment(
         logger.logData([
             f"\nEpoch [{epoch+1}/{model._epochs}]",
             f"\nTraining Loss: {trainingLoss:.4f}",
+            f"\nValidation Loss: {validationLoss:.4f}"
             f"\nTraining Accuracy: {trainingAccuracy:.4f}",
             f"\nValidation Accuracy: {validationAccuracy:.4f}"
         ], printToConsole=True)
+
+        # Check if we need to stop the training early
+        if (earlyStopping):
+            if (earlyStopper.earlyStop(validationLoss.item())):
+                logger.logData([f"\nEarly stopping triggered after epoch {epoch+1}."], printToConsole=True)
+                break
 
 
     end = time()
@@ -109,19 +125,19 @@ def runExperiment(
 
     # Plot the training results
     saveGraph(
-        xValues=list(range(1, model._epochs + 1)),
+        xValues=list(range(1, epochsRun + 1)),
         yValuesList=[trainingLosses, trainingAccuracies, validationAccuracies, validationLosses],
         colors=['red', 'blue', 'green', 'orange'],
         labels=['Training Loss', 'Training Accuracy', 'Validation Accuracy', 'Validation Loss'],
         title='Training Results over Epochs',
         xLabel='Epochs',
         yLabel='Value',
-        fileName=f"experiments/{experimentName}/training.png"
+        fileName=f"{Config.EXPERIMENTS_FOLDER}/{experimentName}/training.png"
     )
 
 
     # Save the trained model
-    saveModel(model, f"experiments/{experimentName}/model.pth")
+    saveModel(model, f"{Config.EXPERIMENTS_FOLDER}/{experimentName}/model.pth")
 
 
 
@@ -135,7 +151,7 @@ def setupExperiment(id: int, appendTimestamp: bool = True) -> str:
     if (appendTimestamp):
         experimentName += " " + getCurrentTimeRepresentation()
     
-    experimentFilePath = f"experiments/{experimentName}"
+    experimentFilePath = f"{Config.EXPERIMENTS_FOLDER}/{experimentName}"
 
     if not os.path.exists(experimentFilePath):
         os.makedirs(experimentFilePath)
