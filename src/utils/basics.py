@@ -85,5 +85,9 @@ def loadModel(model: torch.nn.Module, path: str) -> None:
         @param model: The model to load the state dict into.
         @param path: The path to load the model from.
     '''
-    model.load_state_dict(torch.load(path, weights_only=False))
+    loaded = torch.load(path, weights_only=False)
+    if (not loaded):
+        print(f"Couldn't load model from path {path}!")
+        return None
+    model.load_state_dict(loaded)
     model.eval()

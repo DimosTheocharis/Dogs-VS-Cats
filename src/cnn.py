@@ -65,7 +65,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         * Flatten layer: {"type: LayerType}
     '''
     def __init__(self,
-            architecture: any,
+            architecture: BaseArchitecture,
             epochs: int = 100,
             learningRate: float = 0.01,
             batchSize: int = 128,
@@ -73,7 +73,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         ):
         
         super().__init__()
-        self._architecture: any = architecture
+        self._architecture: BaseArchitecture = architecture
         self._epochs: int = epochs
         self._learningRate: float = learningRate
         self._batchSize: int | None = batchSize
@@ -138,7 +138,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         return t
 
     def __repr__(self):
-        return super().__repr__() + f"\nEpochs = {self._epochs}" + f"\nLearning rate = {self._learningRate}" + f"\nBatch size = {self._batchSize}" + f"\nWeight decay = {self._weightDecay}"
+        return f"\nName = {self._architecture.name}" + f"\nDescription = {self._architecture.description}" + "\n" + super().__repr__() + f"\nEpochs = {self._epochs}" + f"\nLearning rate = {self._learningRate}" + f"\nBatch size = {self._batchSize}" + f"\nWeight decay = {self._weightDecay}"
     
     def oneLineDescription(self) -> str:
         return f"{self._epochs}e {self._learningRate}lr {self._batchSize}bs {self._weightDecay}wd"

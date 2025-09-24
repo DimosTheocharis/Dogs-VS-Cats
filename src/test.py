@@ -9,6 +9,10 @@ def testModel(
     model: ConvolutionalNeuralNetwork,
     testLoader: torch.utils.data.DataLoader
 ):
+    if (not model):
+        print("No model provided!")
+        return
+    
     # Combine all batches of the test set into single tensors
     testImages, testLabels = extractDataFromLoader(testLoader)
     

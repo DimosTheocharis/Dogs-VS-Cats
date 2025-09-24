@@ -15,7 +15,8 @@ def runExperiment(
     trainLoader: torch.utils.data.DataLoader,
     validationImages: torch.Tensor,
     validationLabels: torch.Tensor,
-    earlyStopping: bool = False
+    earlyStopping: bool = False,
+    description: str | None = None
 ):
     experimentName = setupExperiment(experimentId)
 
@@ -24,11 +25,13 @@ def runExperiment(
 
     # Log the model structure and dataset information
     logger.logData([
-        f"Model structure: {model}",
+        description,
+        f"\n{model}",
         "\n\n",
         f"\nTraining samples: {len(trainLoader.dataset)}",
         f"\nValidation samples: {len(validationImages)}",
-        f"\nEarly stopping: {'Enabled' if earlyStopping else 'Disabled'}"
+        f"\nEarly stopping: {'Enabled' if earlyStopping else 'Disabled'}",
+        f"\nImage size: {Config.IMAGE_SIZE}x{Config.IMAGE_SIZE}"
     ], printToConsole=True)
 
     if (earlyStopping):
@@ -52,6 +55,7 @@ def runExperiment(
 
     # For each epoch
     for epoch in range(model._epochs):
+        startEpochTime = time()
         epochsRun += 1
         model.train()
         batchTrainingLosses: list[float] = []
@@ -103,6 +107,8 @@ def runExperiment(
             validationAccuracy = measureAccuracy(validationPredictions, validationLabels)
             validationAccuracies.append(validationAccuracy)
 
+        endEpochTime = time()
+
         # Log the results
         logger.logData([
             f"\nEpoch [{epoch+1}/{model._epochs}]",
@@ -110,6 +116,7 @@ def runExperiment(
             f"\nValidation Loss: {validationLoss:.4f}"
             f"\nTraining Accuracy: {trainingAccuracy:.4f}",
             f"\nValidation Accuracy: {validationAccuracy:.4f}"
+            f"\nDuration: {endEpochTime - startEpochTime:.2f} seconds"
         ], printToConsole=True)
 
         # Check if we need to stop the training early

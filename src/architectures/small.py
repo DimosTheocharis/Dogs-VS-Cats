@@ -28,7 +28,7 @@ class SmallArchitecture(BaseArchitecture):
 				"activationFunction": ActivationFunction.ReLU,
 				"batchNorm": False
 			},
-			# 32x128x128
+			# 16x128x128
 			{
 				"type": LayerType.MaxPooling,
 				"kernelSize": 8,
