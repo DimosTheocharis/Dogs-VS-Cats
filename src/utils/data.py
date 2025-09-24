@@ -1,9 +1,10 @@
 import torchvision
 import torch
+import os
 from torch.utils.data import DataLoader, random_split
-from utils.basics import displayImage
+from src.utils.basics import displayImage
 
-from config import Config
+from src.config import Config
 
 def loadData(folderPath: str, splitPercentages: list[float], batchSize: int) -> list[DataLoader]:
     '''
@@ -23,6 +24,8 @@ def loadData(folderPath: str, splitPercentages: list[float], batchSize: int) -> 
         torchvision.transforms.Resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE)), # Resize images to 128x128 pixels
         torchvision.transforms.ToTensor() # Convert images to PyTorch tensors and rescale pixel values to [0, 1]
     ])
+
+    print(os.getcwd())
 
     # Load the dataset from the specified folder path
     dataset = torchvision.datasets.ImageFolder(

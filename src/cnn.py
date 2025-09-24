@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
-from typing import List, Dict
+from typing import List, Dict, Type, TypeVar
 from enum import Enum
+
+from src.architectures.base import BaseArchitecture
 
 class LayerType(Enum):
     Linear = "Linear"
@@ -18,6 +20,7 @@ class ActivationFunction(Enum):
     Tanh = "Tanh"
     Softplus = "Softplus"
     LeakyReLU = "LeakyReLU"
+
 
 class ConvolutionalNeuralNetwork(nn.Module):
     '''
@@ -62,7 +65,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         * Flatten layer: {"type: LayerType}
     '''
     def __init__(self,
-            layers: List[Dict] = [],
+            architecture: BaseArchitecture,
             epochs: int = 100,
             learningRate: float = 0.01,
             batchSize: int = 128,
@@ -70,7 +73,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         ):
         
         super().__init__()
-        
+        self._architecture: BaseArchitecture = architecture
         self._epochs: int = epochs
         self._learningRate: float = learningRate
         self._batchSize: int | None = batchSize
@@ -78,7 +81,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         self._flattenedOut: bool = False
 
         self._model: nn.Sequential = nn.Sequential()
-        for layer in layers:
+        for layer in self._architecture.layers:
             if layer["type"] == LayerType.Convolutional:
                 self._model.append(nn.Conv2d(layer["inChannels"], layer["outChannels"], layer["kernelSize"], layer["stride"], layer["padding"]))
                 
@@ -135,7 +138,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         return t
 
     def __repr__(self):
-        return super().__repr__() + f"\nEpochs = {self._epochs}" + f"\nLearning rate = {self._learningRate}" + f"\nBatch size = {self._batchSize}" + f"\nWeight decay = {self._weightDecay}"
+        return f"\nName = {self._architecture.name}" + f"\nDescription = {self._architecture.description}" + "\n" + super().__repr__() + f"\nEpochs = {self._epochs}" + f"\nLearning rate = {self._learningRate}" + f"\nBatch size = {self._batchSize}" + f"\nWeight decay = {self._weightDecay}"
     
     def oneLineDescription(self) -> str:
         return f"{self._epochs}e {self._learningRate}lr {self._batchSize}bs {self._weightDecay}wd"
