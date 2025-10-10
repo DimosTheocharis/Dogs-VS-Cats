@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from typing import Any
 from datetime import datetime
 from mpl_toolkits.axes_grid1 import ImageGrid
+import random
+import math
+from src.config import Config
 
 def displayImage(image: torch.Tensor | Any):
     if isinstance(image, torch.Tensor):
@@ -108,7 +111,6 @@ def imageAugmentation(image: torch.Tensor, transforms: torchvision.transforms.tr
         raise ValueError("I was expecting a {transforms} object but got None.")
 
     fig, axes = plt.subplots(2, 2, figsize=(6, 6))
-
     axes = axes.flatten()
 
     for i in range(times):
@@ -116,6 +118,62 @@ def imageAugmentation(image: torch.Tensor, transforms: torchvision.transforms.tr
         augmentedImage = augmentedImage.permute(1,  2, 0)
 
         axes[i].imshow(augmentedImage)
+        axes[i].set_xlabel(f"Augmented #{i+1}", fontsize=10, color=random.choice(['red', 'green']))
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+def plotTestResults(images: torch.Tensor, labels: torch.Tensor, predictions: torch.Tensor, classToIndex: dict[str, int], saveTo: str = None):
+    # How many plots (images) will contain each graph
+    plotsPerGraph: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
+
+    # How many graphs will be made
+    totalGraphs: int = math.ceil(images.size()[0] / plotsPerGraph)
+
+    print(totalGraphs)
+
+    for i in range(totalGraphs):
+        plotGrid(images[i * plotsPerGraph : (i + 1) * plotsPerGraph])
+    
+    
+    # fig, axes = plt.subplots(3, 4, figsize=(10, 6))
+    # axes = axes.flatten()
+
+    # indexToClass: dict[int, str] = {v: k for k, v in classToIndex.items()}
+    # names = ["Roza", "Mpezos", "Wtf", "Aleksandra", "Roza", "Mpezos", "Wtf", "Aleksandra", "Petros", "Makhs", "Takhs", "Lakhs"]
+
+    # for i in range(12):
+    #     fixedImage: torch.Tensor = images[i].permute(1, 2, 0)
+    #     axes[i].imshow(fixedImage)
+    #     axes[i].set_title(names[i])
+    #     axes[i].set_xlabel(indexToClass[labels[i].item()], color='green' if labels[i].item() == predictions[i].item() else 'red')
+
+    # plt.tight_layout()
+    # plt.show()
+
+
+def plotGrid(images: torch.Tensor, labels: torch.Tensor) -> None:
+    '''
+        Makes one plot for each image inside the given {images}, in a WxH grid where
+            W = Config.MAX_PLOTS_PER_ROW 
+            H = Config.MAX_ROWS_PER_GRAPH 
+
+        If the images are not quite enough to fill the graph, then only a part
+        of the graph is filled.
+
+        If images are too many, then only WxH images will be displayed.
+    '''
+    maxImages: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
+    totalImages: int = images.size(0)
+    
+    fix, axes = plt.subplots(Config.MAX_PLOTS_PER_ROW, Config.MAX_ROWS_PER_GRAPH)
+    axes = axes.flatten()
+    
+    for i in range(min(totalImages, maxImages)):
+        fixedImage: torch.Tensor = images[i].permute(1, 2, 0)
+        axes[i].imshow(fixedImage)
 
     plt.tight_layout()
     plt.show()

@@ -70,10 +70,10 @@ def loadData(folderPath: str, batchSize: int, dataAugmentationTechniques: list[T
         trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
 
     if (len(validationDataset.indices) > 0):
-        validationLoader = DataLoader(validationDataset, batch_size=batchSize, shuffle=True)
+        validationLoader = DataLoader(validationDataset, batch_size=batchSize, shuffle=False)
     
     if (len(testDataset.indices) > 0):
-        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
+        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=False)
 
     
     return (trainLoader, validationLoader, testLoader)
