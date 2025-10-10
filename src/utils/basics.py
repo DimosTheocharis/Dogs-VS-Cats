@@ -1,7 +1,9 @@
 import torch
+import torchvision
 import matplotlib.pyplot as plt
 from typing import Any
 from datetime import datetime
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 def displayImage(image: torch.Tensor | Any):
     if isinstance(image, torch.Tensor):
@@ -91,3 +93,29 @@ def loadModel(model: torch.nn.Module, path: str) -> None:
         return None
     model.load_state_dict(loaded)
     model.eval()
+
+
+
+def imageAugmentation(image: torch.Tensor, transforms: torchvision.transforms.transforms.Compose, times: int = 6) -> None:
+    '''
+        Applies the given {transforms} to the given {image}, as many times as {times} says.
+        The generated augmented images are plotted into a graph.
+    '''
+    if (image is None):
+        raise ValueError("I was expecting an {image} object but got None.")
+    
+    if (transforms is None):
+        raise ValueError("I was expecting a {transforms} object but got None.")
+
+    fig, axes = plt.subplots(2, 2, figsize=(6, 6))
+
+    axes = axes.flatten()
+
+    for i in range(times):
+        augmentedImage = transforms(image)
+        augmentedImage = augmentedImage.permute(1,  2, 0)
+
+        axes[i].imshow(augmentedImage)
+
+    plt.tight_layout()
+    plt.show()

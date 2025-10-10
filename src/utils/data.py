@@ -1,49 +1,82 @@
 import torchvision
 import torch
 import os
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
+from torchvision.transforms import v2
+from torchvision.transforms.v2 import Transform
+from torchvision.datasets import ImageFolder
 from src.utils.basics import displayImage
 
 from src.config import Config
 
-def loadData(folderPath: str, splitPercentages: list[float], batchSize: int) -> list[DataLoader]:
+def loadData(folderPath: str, batchSize: int, dataAugmentationTechniques: list[Transform] = []) -> tuple[DataLoader | None, DataLoader | None, DataLoader | None]:
     '''
-        Load images from a specified folder path, splits them into sets and 
+        Load images from a specified folder path, splits them into training, validation and test sets and 
         return a DataLoader object for each set.
 
         @param folderPath: The path to the folder containing the images.
-        @param splitPercentages: A list of floats representing the percentages of train set, test set etc
         @param batchSize: The number of samples per batch to load.
 
-        @return: A list of DataLoader objects, one for each set.'''
+        @return: A tuple with 3 loaders: train, validation and test'''
+    splitPercentages = [Config.TRAINING_SPLIT, Config.VALIDATION_SPLIT, Config.TEST_SPLIT]
     if (sum(splitPercentages) != 1.0):
-        raise ValueError("The sum of {splitPercentages} must be equal to 1.0")
+        raise ValueError(f"The sum of {splitPercentages} must be equal to 1.0")
     
-    # Create the transform object
-    transoforms = torchvision.transforms.Compose([
+    # Base transformations (always applied)
+    basicTransformations: list[any] = [
         torchvision.transforms.Resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE)), # Resize images to 128x128 pixels
         torchvision.transforms.ToTensor() # Convert images to PyTorch tensors and rescale pixel values to [0, 1]
-    ])
+    ]
 
-    print(os.getcwd())
-
-    # Load the dataset from the specified folder path
-    dataset = torchvision.datasets.ImageFolder(
-        root=folderPath,
-        transform=transoforms
+    # Define the transformations for the train set
+    trainTransforms = torchvision.transforms.Compose(
+        dataAugmentationTechniques + basicTransformations
     )
 
-    print(len(dataset))
+    # Define the transformations for the other sets (validation, test)
+    otherTransforms = torchvision.transforms.Compose(
+        basicTransformations
+    )
 
-    # Create the ImageFolder datasets
-    datasets: list[torchvision.datasets.ImageFolder] = random_split(dataset, splitPercentages)
+    # Load the dataset from the specified folder path, without transforms
+    baseDataset = torchvision.datasets.ImageFolder(
+        root=folderPath
+    )
 
-    # Create DataLoader objects for each dataset
-    loaders: list[DataLoader] = [
-        DataLoader(dataset, batch_size=batchSize, shuffle=True) for dataset in datasets
-    ]
-        
-    return loaders
+    # Convert split percentages to actual lengths
+    totalSize = len(baseDataset)
+    splitSizes: list[int] = [round(percentage * totalSize) for percentage in splitPercentages]
+
+    # Adjust last split to fix rounding errors
+    splitSizes[-1] = totalSize - sum(splitSizes[:-1])
+
+    subSets: list[Subset] = random_split(baseDataset, splitSizes)
+
+    trainIndices, validationIndices, testIndices = [subSet.indices for subSet in subSets]
+
+
+
+    # Create the datasets
+    trainDataset = Subset(ImageFolder(root=folderPath, transform=trainTransforms), indices=trainIndices)
+    validationDataset = Subset(ImageFolder(root=folderPath, transform=otherTransforms), indices = validationIndices)
+    testDataset = Subset(ImageFolder(root=folderPath, transform=otherTransforms), indices=testIndices)
+
+    trainLoader: DataLoader | None = None
+    validationLoader: DataLoader | None = None
+    testLoader: DataLoader | None = None
+
+    # Create DataLoader object for each dataset, only if the dataset is not empty
+    if (len(trainDataset.indices) > 0):
+        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
+
+    if (len(validationDataset.indices) > 0):
+        validationLoader = DataLoader(validationDataset, batch_size=batchSize, shuffle=True)
+    
+    if (len(testDataset.indices) > 0):
+        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
+
+    
+    return (trainLoader, validationLoader, testLoader)
 
 
 def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor]:
