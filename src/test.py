@@ -14,7 +14,7 @@ def testModel(
         return
     
     # Combine all batches of the test set into single tensors
-    testImages, testLabels = extractDataFromLoader(testLoader)
+    testImages, testLabels, testNames = extractDataFromLoader(testLoader)
     
     with torch.no_grad():
         testPredictions = model(testImages).squeeze()
@@ -37,4 +37,4 @@ def testModel(
     predictedClasses[predictedClasses >= 0.5] = 1
     predictedClasses[predictedClasses < 0.5] = 0
 
-    plotTestResults(testImages, testLabels, predictedClasses, testLoader.dataset.dataset.class_to_idx)
+    plotTestResults(testImages, testLabels, testNames, testPredictions, testLoader.dataset.dataset.class_to_idx)

@@ -1,6 +1,7 @@
 import torch
 import torchvision
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from typing import Any
 from datetime import datetime
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -125,17 +126,23 @@ def imageAugmentation(image: torch.Tensor, transforms: torchvision.transforms.tr
 
 
 
-def plotTestResults(images: torch.Tensor, labels: torch.Tensor, predictions: torch.Tensor, classToIndex: dict[str, int], saveTo: str = None):
+def plotTestResults(images: torch.Tensor, labels: torch.Tensor, names: list[str], predictions: torch.Tensor, classToIndex: dict[str, int], saveTo: str = None):
     # How many plots (images) will contain each graph
     plotsPerGraph: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
 
     # How many graphs will be made
     totalGraphs: int = math.ceil(images.size()[0] / plotsPerGraph)
 
-    print(totalGraphs)
-
     for i in range(totalGraphs):
-        plotGrid(images[i * plotsPerGraph : (i + 1) * plotsPerGraph])
+        startIndex: int = i * plotsPerGraph
+        endIndex: int = (i + 1) * plotsPerGraph
+        plotGrid(
+            images[startIndex : endIndex], 
+            labels[startIndex : endIndex], 
+            names[startIndex : endIndex], 
+            predictions[startIndex : endIndex], 
+            classToIndex
+        )
     
     
     # fig, axes = plt.subplots(3, 4, figsize=(10, 6))
@@ -154,7 +161,7 @@ def plotTestResults(images: torch.Tensor, labels: torch.Tensor, predictions: tor
     # plt.show()
 
 
-def plotGrid(images: torch.Tensor, labels: torch.Tensor) -> None:
+def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], predictions: torch.Tensor, classToIndex: dict[str, int]) -> None:
     '''
         Makes one plot for each image inside the given {images}, in a WxH grid where
             W = Config.MAX_PLOTS_PER_ROW 
@@ -167,13 +174,37 @@ def plotGrid(images: torch.Tensor, labels: torch.Tensor) -> None:
     '''
     maxImages: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
     totalImages: int = images.size(0)
+    indexToClass: dict[int, str] = {v: k for k, v in classToIndex.items()}
+
     
-    fix, axes = plt.subplots(Config.MAX_PLOTS_PER_ROW, Config.MAX_ROWS_PER_GRAPH)
+    fix, axes = plt.subplots(Config.MAX_ROWS_PER_GRAPH, Config.MAX_PLOTS_PER_ROW, figsize=(Config.FIGURE_WIDTH, Config.FIGURE_HEIGHT))
     axes = axes.flatten()
     
     for i in range(min(totalImages, maxImages)):
         fixedImage: torch.Tensor = images[i].permute(1, 2, 0)
+        certainty: float = max(predictions[i].item(), 1 - predictions[i].item())
+        predictedClass: int = round(predictions[i].item())
+        color: str = 'green' if labels[i].item() == predictedClass else 'red'
+
+
         axes[i].imshow(fixedImage)
+        axes[i].set_title(names[i])
+
+        axes[i].set_xlabel(f"{indexToClass[labels[i].item()]} ({certainty * 100:.2f}%)", color=color)
+
+
+        rect = patches.Rectangle(
+            (-2, -2),                
+            images[i].shape[2] + 4,          
+            images[i].shape[1] + 4,          
+            linewidth=3,
+            edgecolor=color,
+            facecolor='none',     
+            clip_on =False
+        )
+        axes[i].add_patch(rect)
+
+
 
     plt.tight_layout()
     plt.show()

@@ -1,7 +1,7 @@
 import torchvision
 import torch
 import os
-from torch.utils.data import DataLoader, random_split, Subset
+from torch.utils.data import DataLoader, random_split, Subset, Dataset
 from torchvision.transforms import v2
 from torchvision.transforms.v2 import Transform
 from torchvision.datasets import ImageFolder
@@ -59,7 +59,9 @@ def loadData(folderPath: str, batchSize: int, dataAugmentationTechniques: list[T
     # Create the datasets
     trainDataset = Subset(ImageFolder(root=folderPath, transform=trainTransforms), indices=trainIndices)
     validationDataset = Subset(ImageFolder(root=folderPath, transform=otherTransforms), indices = validationIndices)
-    testDataset = Subset(ImageFolder(root=folderPath, transform=otherTransforms), indices=testIndices)
+    testDataset = Subset(
+        CustomDataset(ImageFolder(root=folderPath, transform=otherTransforms)), indices=testIndices
+    )
 
     trainLoader: DataLoader | None = None
     validationLoader: DataLoader | None = None
@@ -92,13 +94,45 @@ def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor
     '''
     images = []
     labels = []
+    names = []
 
-    for batchImages, batchLabels in loader:
+
+    for batchImages, batchLabels, batchNames in loader:
         images.append(batchImages)
         labels.append(batchLabels)
+        names.append(batchNames)
 
     # Concatenate all batches into single tensors
     imagesTensor = torch.cat(images)
     labelsTensor = torch.cat(labels)
+    imageslist = [name for batch in names for name in batch]
 
-    return imagesTensor, labelsTensor
+
+    return imagesTensor, labelsTensor, imageslist
+
+
+
+class CustomDataset(Dataset):
+    """
+        ImageFolder subclass that includes image file names.
+    """
+    def __init__(self, imageFolderDataset):
+        self.imageFolderDataset = imageFolderDataset
+        self.class_to_idx = self.imageFolderDataset.class_to_idx
+
+    def __getitem__(self, index):
+        # Get the original (image, label)
+        image, label = self.imageFolderDataset[index]
+
+        # Get the file path
+        path, _ = self.imageFolderDataset.samples[index]
+        fileName = os.path.basename(path).split(".")[0]
+
+        return image, label, fileName
+    
+
+    def __len__(self):
+        return len(self.imageFolderDataset)
+
+
+

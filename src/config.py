@@ -19,6 +19,8 @@ class Config:
     EXPERIMENTS_FOLDER = "experiments"
 
     # Plotting parameters
-    MAX_PLOTS_PER_ROW = 4
-    MAX_ROWS_PER_GRAPH = 4
+    MAX_PLOTS_PER_ROW = 3
+    MAX_ROWS_PER_GRAPH = 3
+    FIGURE_WIDTH = 9
+    FIGURE_HEIGHT = 7
 
