@@ -1,24 +1,97 @@
 import torch
 import torchvision
+from torchvision.transforms import v2
+from PIL import Image
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from typing import Any
 from datetime import datetime
 from mpl_toolkits.axes_grid1 import ImageGrid
 import random
 import math
 from src.config import Config
 
-def displayImage(image: torch.Tensor | Any):
-    if isinstance(image, torch.Tensor):
-        if (image.ndim == 3 and image.shape[1] == image.shape[2]):
-            # Convert from (C, W, H) to (W, H, C)
-            image = image.permute(1, 2, 0)
+# def displayImage(image: torch.Tensor | Any):
+#     if isinstance(image, torch.Tensor):
+#         if (image.ndim == 3 and image.shape[1] == image.shape[2]):
+#             # Convert from (C, W, H) to (W, H, C)
+#             image = image.permute(1, 2, 0)
         
-        plt.imshow(image)
-        plt.axis('off')
-        plt.show()
+#         plt.imshow(image)
+#         plt.axis('off')
+#         plt.show()
 
+
+def displayImage(sample: np.ndarray | Image.Image | torch.Tensor):
+    '''
+        Creates an image from the given {sample} (1D or 3D) and then
+        displays that image.
+
+        Note: If sample is already a Pillow Image, the it just displays it
+    '''
+    image: Image.Image
+    if (isinstance(sample, Image.Image)):
+        image = sample
+    elif (isinstance(sample, np.ndarray)):
+        image: Image.Image = fromNdarrayToImage(sample)
+    elif (isinstance(sample, torch.Tensor)):
+        sample = sample.numpy()
+        image = fromNdarrayToImage(sample)
+    
+    plt.imshow(image)
+    plt.title(getattr(image, "title", "No title"))
+    plt.show()
+
+def fromNdarrayToImage(sample: np.ndarray) -> Image.Image:
+    '''
+        Creates and returns an Image.Image object from the given {sample} ndarray.
+        If the given {sample} has 1 dimension, it transforms it to 3 dimensions (width, height, channels)
+
+        Otherwise it keeps it as be.
+    '''
+    # Get a copy of the given {sample}
+    data = sample.copy()
+
+    # Check if {sample} is 1D, and if that's true transform it to 3D (width, height, channels)
+    if (sample.ndim == 1):
+        data = unflattenRGBImage(data, channelsFirst=False)
+    elif (sample.ndim == 3):
+        # Make sure that the format is (width, height, channels) and not (channels, width, height)
+        if (sample.shape[1] == sample.shape[2]):
+            data = data.reshape((sample.shape[1], sample.shape[2], sample.shape[0]))
+        
+    image: Image.Image = Image.fromarray(data, mode="RGB")
+    
+    return image
+
+
+def unflattenRGBImage(image: np.ndarray, channelsFirst: bool = True) -> np.ndarray:
+    '''
+        Transforms the given (?,) array to (3,r,r) or (r,r,3) image,
+        where r = sqrt(? / 3)
+
+        @param channelsFirst: If true, the shape will be (3,r,r), otherwise it will be (r,r,3)
+
+        for example transforms (3072,) to (3, 32, 32) or (32, 32, 3)
+    '''
+    if (image.ndim == 3):
+        return image
+    channelLength = int(image.shape[0] / 3)
+
+    # Get the size of the image (size = width = height)
+    r = int(math.sqrt(channelLength))
+
+    red: np.ndarray = image[0 : channelLength * 1].reshape((r, r))
+    green: np.ndarray = image[channelLength * 1 : channelLength * 2].reshape((r, r))
+    blue: np.ndarray = image[channelLength * 2 : channelLength * 3].reshape((r, r))
+
+    data: np.ndarray 
+    if (channelsFirst):
+        data = np.stack((red, green, blue), axis=0)
+    else:
+        data = np.stack((red, green, blue), axis=-1)
+
+    return data
 
 
 def measureAccuracy(predictions: torch.Tensor, labels: torch.Tensor) -> float:
@@ -126,7 +199,7 @@ def imageAugmentation(image: torch.Tensor, transforms: torchvision.transforms.tr
 
 
 
-def plotTestResults(images: torch.Tensor, labels: torch.Tensor, names: list[str], predictions: torch.Tensor, classToIndex: dict[str, int], saveTo: str = None):
+def plotTestResults(images: torch.Tensor, labels: torch.Tensor, names: list[str], locations: list[str], predictions: torch.Tensor, classToIndex: dict[str, int], saveTo: str = None):
     # How many plots (images) will contain each graph
     plotsPerGraph: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
 
@@ -140,28 +213,13 @@ def plotTestResults(images: torch.Tensor, labels: torch.Tensor, names: list[str]
             images[startIndex : endIndex], 
             labels[startIndex : endIndex], 
             names[startIndex : endIndex], 
+            locations[startIndex : endIndex],
             predictions[startIndex : endIndex], 
             classToIndex
         )
-    
-    
-    # fig, axes = plt.subplots(3, 4, figsize=(10, 6))
-    # axes = axes.flatten()
-
-    # indexToClass: dict[int, str] = {v: k for k, v in classToIndex.items()}
-    # names = ["Roza", "Mpezos", "Wtf", "Aleksandra", "Roza", "Mpezos", "Wtf", "Aleksandra", "Petros", "Makhs", "Takhs", "Lakhs"]
-
-    # for i in range(12):
-    #     fixedImage: torch.Tensor = images[i].permute(1, 2, 0)
-    #     axes[i].imshow(fixedImage)
-    #     axes[i].set_title(names[i])
-    #     axes[i].set_xlabel(indexToClass[labels[i].item()], color='green' if labels[i].item() == predictions[i].item() else 'red')
-
-    # plt.tight_layout()
-    # plt.show()
 
 
-def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], predictions: torch.Tensor, classToIndex: dict[str, int]) -> None:
+def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], locations: list[str], predictions: torch.Tensor, classToIndex: dict[str, int]) -> None:
     '''
         Makes one plot for each image inside the given {images}, in a WxH grid where
             W = Config.MAX_PLOTS_PER_ROW 
@@ -174,29 +232,41 @@ def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], predi
     '''
     maxImages: int = Config.MAX_PLOTS_PER_ROW * Config.MAX_ROWS_PER_GRAPH
     totalImages: int = images.size(0)
+    # Make the dictionary {0: 'Cat', 1: 'Dog'}
     indexToClass: dict[int, str] = {v: k for k, v in classToIndex.items()}
 
     
-    fix, axes = plt.subplots(Config.MAX_ROWS_PER_GRAPH, Config.MAX_PLOTS_PER_ROW, figsize=(Config.FIGURE_WIDTH, Config.FIGURE_HEIGHT))
+    fig, axes = plt.subplots(Config.MAX_ROWS_PER_GRAPH, Config.MAX_PLOTS_PER_ROW, figsize=(Config.FIGURE_WIDTH, Config.FIGURE_HEIGHT), constrained_layout=True)
     axes = axes.flatten()
+
     
     for i in range(min(totalImages, maxImages)):
+        # Apply transformations and set channels to HxWxC
         fixedImage: torch.Tensor = images[i].permute(1, 2, 0)
+
+        # If prediction is 0.012 (cat) then the model is 98.8% that image is cat 
         certainty: float = max(predictions[i].item(), 1 - predictions[i].item())
         predictedClass: int = round(predictions[i].item())
         color: str = 'green' if labels[i].item() == predictedClass else 'red'
 
 
         axes[i].imshow(fixedImage)
-        axes[i].set_title(names[i])
+        # Animal's name
+        axes[i].set_title(names[i] , pad=Config.TITLE_PADDING, fontsize=Config.TITLE_FONT_SIZE)
 
-        axes[i].set_xlabel(f"{indexToClass[labels[i].item()]} ({certainty * 100:.2f}%)", color=color)
+        # Animal's location
+        axes[i].text(Config.SUBTITLE_X, Config.SUBTITLE_Y, locations[i], transform=axes[i].transAxes, ha="center", va="bottom", fontsize=Config.SUBTITLE_FONT_SIZE, color="gray")
+        
 
+        axes[i].set_xlabel(f"{indexToClass[labels[i].item()]} ({certainty * 100:.2f}%) \n", color=color, labelpad=Config.LABEL_PADDING, fontsize=Config.LABEL_FONT_SIZE)
+        axes[i].set_xticks([])
+        axes[i].set_yticks([])
 
+        # Draw a border around the image with width=3. Border is green if prediction is correct, otherwise is red
         rect = patches.Rectangle(
             (-2, -2),                
-            images[i].shape[2] + 4,          
-            images[i].shape[1] + 4,          
+            fixedImage.shape[0] + 4,          
+            fixedImage.shape[1] + 4,          
             linewidth=3,
             edgecolor=color,
             facecolor='none',     
@@ -204,7 +274,4 @@ def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], predi
         )
         axes[i].add_patch(rect)
 
-
-
-    plt.tight_layout()
-    plt.show()
+    fig.show()

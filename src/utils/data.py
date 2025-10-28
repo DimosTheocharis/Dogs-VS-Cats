@@ -102,13 +102,26 @@ def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor
         labels.append(batchLabels)
         names.append(batchNames)
 
+
     # Concatenate all batches into single tensors
     imagesTensor = torch.cat(images)
     labelsTensor = torch.cat(labels)
-    imageslist = [name for batch in names for name in batch]
+    namesList = [name for batch in names for name in batch]
+    locationsList = ["-" for name in namesList]
+    
+    # Some names may have this format: animalName___location
+    # So, grab the location and save it independently
+    for i in range(len(namesList)):
+        name = namesList[i]
+        parts = name.split("___")
+        if len(parts) == 2:
+            actualName: str = parts[0]
+            location: str = parts[1]
+            namesList[i] = actualName
+            locationsList[i] = location
 
 
-    return imagesTensor, labelsTensor, imageslist
+    return imagesTensor, labelsTensor, namesList, locationsList
 
 
 

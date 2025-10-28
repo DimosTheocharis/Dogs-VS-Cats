@@ -14,9 +14,10 @@ def testModel(
         return
     
     # Combine all batches of the test set into single tensors
-    testImages, testLabels, testNames = extractDataFromLoader(testLoader)
+    testImages, testLabels, testNames, testLocations = extractDataFromLoader(testLoader)
     
     with torch.no_grad():
+        # Make predictions
         testPredictions = model(testImages).squeeze()
 
         # Transform raw logits to probabilities
@@ -25,11 +26,6 @@ def testModel(
         # Compute the model's accuracy in the test set
         testAccuracy = measureAccuracy(testPredictions, testLabels)
 
-
-        print("Labels: ")
-        print(testLabels)
-        print("Predictions: ")
-        print(testPredictions)
         print(f"Accuracy on test set: {testAccuracy:.4f}")
 
     # Convert predictions to binary (0 or 1) using a threshold of 0.5
@@ -37,4 +33,4 @@ def testModel(
     predictedClasses[predictedClasses >= 0.5] = 1
     predictedClasses[predictedClasses < 0.5] = 0
 
-    plotTestResults(testImages, testLabels, testNames, testPredictions, testLoader.dataset.dataset.class_to_idx)
+    plotTestResults(testImages, testLabels, testNames, testLocations, testPredictions, testLoader.dataset.dataset.class_to_idx)
