@@ -31,7 +31,8 @@ def runExperiment(
         f"\nTraining samples: {len(trainLoader.dataset)}",
         f"\nValidation samples: {len(validationImages)}",
         f"\nEarly stopping: {'Enabled' if earlyStopping else 'Disabled'}",
-        f"\nImage size: {Config.IMAGE_SIZE}x{Config.IMAGE_SIZE}"
+        f"\nImage size: {Config.IMAGE_SIZE}x{Config.IMAGE_SIZE}",
+        f"\n\nTransforms: {trainLoader.dataset.dataset.transforms}"
     ], printToConsole=True)
 
     if (earlyStopping):
