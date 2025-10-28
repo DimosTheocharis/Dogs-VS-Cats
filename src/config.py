@@ -2,6 +2,7 @@ import os
 
 class Config:
     DATASET_PATH = os.path.join("data", "MyOwnImages")
+    EXCEL_PATH = os.path.join("C:/Users/dimos/Downloads/Εύρεση εικόνων για τον έλεγχο του AI μοντέλου (Απαντήσεις).xlsx")
     CATS_FOLDER_NAME = "Cat"
     DOGS_FOLDER_NAME = "Dog"
     IMAGE_SIZE = 128
