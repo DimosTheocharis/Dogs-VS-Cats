@@ -1,0 +1,182 @@
+
+Let's try data augmentation, model 1. This is the first model that uses: RandomHorizontalFlip, ColorJitter, RandomAffine(zoom in/out)
+
+Name = A series with double convolutional layers
+Description = A CNN with 4 sets of consecutive convolutional layers where the first one doubles the channels and the second retains them.
+            After each set, a dropout layer and a max pooling layer follow. In the end of the network there is a flatten layer with 8192 nodes.
+            The last layers are linear droping the nodes, followed by dropout layers.
+        
+ConvolutionalNeuralNetwork(
+  (_model): Sequential(
+    (0): Conv2d(3, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (4): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): ReLU()
+    (6): Dropout2d(p=0.2, inplace=False)
+    (7): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (8): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (9): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (10): ReLU()
+    (11): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (12): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (13): ReLU()
+    (14): Dropout2d(p=0.2, inplace=False)
+    (15): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (16): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (17): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (18): ReLU()
+    (19): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (20): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (21): ReLU()
+    (22): Dropout2d(p=0.2, inplace=False)
+    (23): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (24): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (25): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (26): ReLU()
+    (27): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (28): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (29): ReLU()
+    (30): Dropout2d(p=0.2, inplace=False)
+    (31): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (32): Flatten(start_dim=1, end_dim=-1)
+    (33): Linear(in_features=8192, out_features=1024, bias=True)
+    (34): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (35): Dropout(p=0.35, inplace=False)
+    (36): Linear(in_features=1024, out_features=128, bias=True)
+    (37): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (38): Dropout(p=0.35, inplace=False)
+    (39): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+Epochs = 70
+Learning rate = 0.001
+Batch size = 128
+Weight decay = 0.0001
+
+
+Training samples: 22498
+Validation samples: 1250
+Early stopping: Enabled
+Image size: 128x128
+
+Transforms: StandardTransform
+Transform: Compose(
+               Resize(size=(128, 128), interpolation=bilinear, max_size=None, antialias=True)
+               ToTensor()
+               RandomHorizontalFlip(p=0.5)
+               ColorJitter(brightness=(0.75, 1.25), contrast=(0.85, 1.15), saturation=(0.85, 1.15), hue=(-0.05, 0.05))
+               RandomAffine(degrees=[0.0, 0.0], scale=(0.2, 0.2), interpolation=InterpolationMode.NEAREST, fill=0)
+           )
+
+
+Epoch [1/70]
+Training Loss: 0.6846
+Validation Loss: 0.8365
+Training Accuracy: 0.5762
+Validation Accuracy: 0.4872
+Duration: 635.57 seconds
+
+
+Epoch [2/70]
+Training Loss: 0.6406
+Validation Loss: 0.9479
+Training Accuracy: 0.6401
+Validation Accuracy: 0.4904
+Duration: 485.84 seconds
+
+
+Epoch [3/70]
+Training Loss: 0.5973
+Validation Loss: 1.2537
+Training Accuracy: 0.6872
+Validation Accuracy: 0.4896
+Duration: 435.22 seconds
+
+
+Epoch [4/70]
+Training Loss: 0.5668
+Validation Loss: 1.2113
+Training Accuracy: 0.7096
+Validation Accuracy: 0.4888
+Duration: 373.71 seconds
+
+
+Epoch [5/70]
+Training Loss: 0.5417
+Validation Loss: 0.8505
+Training Accuracy: 0.7284
+Validation Accuracy: 0.4856
+Duration: 369.54 seconds
+
+
+Epoch [6/70]
+Training Loss: 0.5251
+Validation Loss: 1.1170
+Training Accuracy: 0.7428
+Validation Accuracy: 0.4912
+Duration: 370.47 seconds
+
+
+Epoch [7/70]
+Training Loss: 0.5075
+Validation Loss: 0.7753
+Training Accuracy: 0.7542
+Validation Accuracy: 0.4784
+Duration: 373.06 seconds
+
+
+Epoch [8/70]
+Training Loss: 0.4975
+Validation Loss: 1.0211
+Training Accuracy: 0.7622
+Validation Accuracy: 0.4904
+Duration: 372.84 seconds
+
+
+Epoch [9/70]
+Training Loss: 0.4881
+Validation Loss: 0.9456
+Training Accuracy: 0.7676
+Validation Accuracy: 0.4928
+Duration: 374.52 seconds
+
+
+Epoch [10/70]
+Training Loss: 0.4740
+Validation Loss: 1.1109
+Training Accuracy: 0.7733
+Validation Accuracy: 0.4952
+Duration: 374.71 seconds
+
+
+Epoch [11/70]
+Training Loss: 0.4618
+Validation Loss: 0.9910
+Training Accuracy: 0.7850
+Validation Accuracy: 0.4952
+Duration: 373.72 seconds
+
+
+Epoch [12/70]
+Training Loss: 0.4550
+Validation Loss: 0.9473
+Training Accuracy: 0.7884
+Validation Accuracy: 0.5056
+Duration: 373.36 seconds
+
+
+Epoch [13/70]
+Training Loss: 0.4470
+Validation Loss: 1.1102
+Training Accuracy: 0.7940
+Validation Accuracy: 0.4976
+Duration: 372.63 seconds
+
+
+Early stopping triggered after epoch 13.
+
+
+
+Training duration: 5285.24 seconds

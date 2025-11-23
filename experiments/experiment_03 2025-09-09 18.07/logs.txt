@@ -1,0 +1,317 @@
+
+
+Name = Medium Architecture with Regularization
+Description = A medium sized architecture with 4 convolutional layers, 3 linear layers, 6 dropout layers and batch normalization 
+ConvolutionalNeuralNetwork(
+  (_model): Sequential(
+    (0): Conv2d(3, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout2d(p=0.2, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (5): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (6): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout2d(p=0.2, inplace=False)
+    (9): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Dropout2d(p=0.2, inplace=False)
+    (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (15): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (16): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (17): ReLU()
+    (18): Dropout2d(p=0.2, inplace=False)
+    (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (20): Flatten(start_dim=1, end_dim=-1)
+    (21): Linear(in_features=512, out_features=1024, bias=True)
+    (22): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (23): Dropout(p=0.4, inplace=False)
+    (24): Linear(in_features=1024, out_features=128, bias=True)
+    (25): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (26): Dropout(p=0.4, inplace=False)
+    (27): Linear(in_features=128, out_features=1, bias=True)
+    (28): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  )
+)
+Epochs = 60
+Learning rate = 0.001
+Batch size = 128
+Weight decay = 0.0001
+
+
+Training samples: 10000
+Validation samples: 2499
+Early stopping: Enabled
+
+
+Epoch [1/60]
+Training Loss: 0.6674
+Validation Loss: 0.6221
+Training Accuracy: 0.6158
+Validation Accuracy: 0.6591
+Duration: 46.36 seconds
+
+
+Epoch [2/60]
+Training Loss: 0.6050
+Validation Loss: 0.5775
+Training Accuracy: 0.6755
+Validation Accuracy: 0.6843
+Duration: 17.40 seconds
+
+
+Epoch [3/60]
+Training Loss: 0.5845
+Validation Loss: 0.5565
+Training Accuracy: 0.6931
+Validation Accuracy: 0.7227
+Duration: 17.10 seconds
+
+
+Epoch [4/60]
+Training Loss: 0.5691
+Validation Loss: 0.5529
+Training Accuracy: 0.7065
+Validation Accuracy: 0.7243
+Duration: 17.68 seconds
+
+
+Epoch [5/60]
+Training Loss: 0.5498
+Validation Loss: 0.5306
+Training Accuracy: 0.7237
+Validation Accuracy: 0.7375
+Duration: 17.88 seconds
+
+
+Epoch [6/60]
+Training Loss: 0.5344
+Validation Loss: 0.5307
+Training Accuracy: 0.7356
+Validation Accuracy: 0.7319
+Duration: 19.75 seconds
+
+
+Epoch [7/60]
+Training Loss: 0.5222
+Validation Loss: 0.5111
+Training Accuracy: 0.7440
+Validation Accuracy: 0.7587
+Duration: 18.05 seconds
+
+
+Epoch [8/60]
+Training Loss: 0.5151
+Validation Loss: 0.5162
+Training Accuracy: 0.7535
+Validation Accuracy: 0.7459
+Duration: 18.33 seconds
+
+
+Epoch [9/60]
+Training Loss: 0.5051
+Validation Loss: 0.5017
+Training Accuracy: 0.7614
+Validation Accuracy: 0.7611
+Duration: 18.18 seconds
+
+
+Epoch [10/60]
+Training Loss: 0.4873
+Validation Loss: 0.4957
+Training Accuracy: 0.7706
+Validation Accuracy: 0.7579
+Duration: 18.44 seconds
+
+
+Epoch [11/60]
+Training Loss: 0.4773
+Validation Loss: 0.4879
+Training Accuracy: 0.7769
+Validation Accuracy: 0.7615
+Duration: 18.69 seconds
+
+
+Epoch [12/60]
+Training Loss: 0.4657
+Validation Loss: 0.5056
+Training Accuracy: 0.7852
+Validation Accuracy: 0.7475
+Duration: 18.59 seconds
+
+
+Epoch [13/60]
+Training Loss: 0.4591
+Validation Loss: 0.4836
+Training Accuracy: 0.7891
+Validation Accuracy: 0.7675
+Duration: 18.20 seconds
+
+
+Epoch [14/60]
+Training Loss: 0.4524
+Validation Loss: 0.5297
+Training Accuracy: 0.7943
+Validation Accuracy: 0.7227
+Duration: 19.22 seconds
+
+
+Epoch [15/60]
+Training Loss: 0.4505
+Validation Loss: 0.4717
+Training Accuracy: 0.7902
+Validation Accuracy: 0.7735
+Duration: 18.60 seconds
+
+
+Epoch [16/60]
+Training Loss: 0.4337
+Validation Loss: 0.4748
+Training Accuracy: 0.8057
+Validation Accuracy: 0.7767
+Duration: 18.55 seconds
+
+
+Epoch [17/60]
+Training Loss: 0.4204
+Validation Loss: 0.4753
+Training Accuracy: 0.8132
+Validation Accuracy: 0.7651
+Duration: 18.73 seconds
+
+
+Epoch [18/60]
+Training Loss: 0.4127
+Validation Loss: 0.4812
+Training Accuracy: 0.8159
+Validation Accuracy: 0.7671
+Duration: 19.11 seconds
+
+
+Epoch [19/60]
+Training Loss: 0.4052
+Validation Loss: 0.5066
+Training Accuracy: 0.8172
+Validation Accuracy: 0.7411
+Duration: 19.08 seconds
+
+
+Epoch [20/60]
+Training Loss: 0.3972
+Validation Loss: 0.4754
+Training Accuracy: 0.8266
+Validation Accuracy: 0.7743
+Duration: 18.91 seconds
+
+
+Epoch [21/60]
+Training Loss: 0.3949
+Validation Loss: 0.4666
+Training Accuracy: 0.8290
+Validation Accuracy: 0.7815
+Duration: 19.31 seconds
+
+
+Epoch [22/60]
+Training Loss: 0.3882
+Validation Loss: 0.5007
+Training Accuracy: 0.8283
+Validation Accuracy: 0.7547
+Duration: 19.70 seconds
+
+
+Epoch [23/60]
+Training Loss: 0.3809
+Validation Loss: 0.4762
+Training Accuracy: 0.8330
+Validation Accuracy: 0.7735
+Duration: 20.96 seconds
+
+
+Epoch [24/60]
+Training Loss: 0.3671
+Validation Loss: 0.4661
+Training Accuracy: 0.8417
+Validation Accuracy: 0.7755
+Duration: 20.85 seconds
+
+
+Epoch [25/60]
+Training Loss: 0.3585
+Validation Loss: 0.4637
+Training Accuracy: 0.8453
+Validation Accuracy: 0.7859
+Duration: 20.72 seconds
+
+
+Epoch [26/60]
+Training Loss: 0.3532
+Validation Loss: 0.4555
+Training Accuracy: 0.8468
+Validation Accuracy: 0.7927
+Duration: 20.87 seconds
+
+
+Epoch [27/60]
+Training Loss: 0.3501
+Validation Loss: 0.4486
+Training Accuracy: 0.8493
+Validation Accuracy: 0.7871
+Duration: 20.70 seconds
+
+
+Epoch [28/60]
+Training Loss: 0.3441
+Validation Loss: 0.4600
+Training Accuracy: 0.8524
+Validation Accuracy: 0.7859
+Duration: 21.08 seconds
+
+
+Epoch [29/60]
+Training Loss: 0.3397
+Validation Loss: 0.4811
+Training Accuracy: 0.8558
+Validation Accuracy: 0.7819
+Duration: 20.90 seconds
+
+
+Epoch [30/60]
+Training Loss: 0.3268
+Validation Loss: 0.4532
+Training Accuracy: 0.8626
+Validation Accuracy: 0.7943
+Duration: 21.33 seconds
+
+
+Epoch [31/60]
+Training Loss: 0.3256
+Validation Loss: 0.4744
+Training Accuracy: 0.8624
+Validation Accuracy: 0.7795
+Duration: 20.69 seconds
+
+
+Epoch [32/60]
+Training Loss: 0.3339
+Validation Loss: 0.4535
+Training Accuracy: 0.8529
+Validation Accuracy: 0.7915
+Duration: 21.69 seconds
+
+
+Epoch [33/60]
+Training Loss: 0.3106
+Validation Loss: 0.4714
+Training Accuracy: 0.8680
+Validation Accuracy: 0.7891
+Duration: 21.02 seconds
+
+
+Early stopping triggered after epoch 33.
+
+
+
+Training duration: 666.70 seconds
