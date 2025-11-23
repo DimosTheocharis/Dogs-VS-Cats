@@ -15,10 +15,27 @@ def runExperiment(
     trainLoader: torch.utils.data.DataLoader,
     validationImages: torch.Tensor,
     validationLabels: torch.Tensor,
-    earlyStopping: bool = False,
     description: str | None = None
 ):
+    '''
+        Trains the model and creates an experiment folder which contains the following files:
+            - logs.txt For model architecture, training & validation settings, performance in each epoch
+            - model.pth The actual trained pytorch model object. It can be loaded afterwards
+            - training.png A graph showing traning and validation accuracy and loss for each epoch
+
+        Parameters:
+            experimentId (int): An increasing number for the id of the experiment
+            model (ConvolutionalNeuralNetwork): The neural network model
+            trainLoader (torch.utils.data.DataLoader): Loads the samples for the training
+            validationImages: torch.Tensor
+            validationLabels: torch.Tensor
+            description: str | None
+
+        Returns:
+            none
+    '''
     experimentName = setupExperiment(experimentId)
+    earlyStopping: bool = Config.EARLY_STOPPING
 
     # Define the logger
     logger = Logger(f"{Config.EXPERIMENTS_FOLDER}/{experimentName}", "logs", appendTimestamp=False)
@@ -43,7 +60,6 @@ def runExperiment(
 
     # Set Adam as optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=model._learningRate, weight_decay=model._weightDecay)
-
 
     trainingLosses: list[float] = []
     validationLosses: list[float] = []

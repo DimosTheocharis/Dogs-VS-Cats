@@ -14,9 +14,9 @@ class Config:
     EARLY_STOPPING_PATIENCE = 5
 
     # Data parameters
-    TRAINING_SPLIT = 0.0
-    VALIDATION_SPLIT = 0.0
-    TEST_SPLIT = 1.0
+    TRAINING_SPLIT = 0.01
+    VALIDATION_SPLIT = 0.01
+    TEST_SPLIT = 0.98
 
     # Logging parameters
     EXPERIMENTS_FOLDER = "experiments"
@@ -27,7 +27,7 @@ class Config:
     FIGURE_WIDTH = 9
     FIGURE_HEIGHT = 10
     TITLE_FONT_SIZE = 16
-    TITLE_PADDING = 22
+    TITLE_PADDING = 26
     SUBTITLE_FONT_SIZE = 10
     SUBTITLE_X = 0.5
     SUBTITLE_Y = 1.04

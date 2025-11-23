@@ -57,8 +57,10 @@ def loadData(folderPath: str, batchSize: int, dataAugmentationTechniques: list[T
 
 
     # Create the datasets
-    trainDataset = Subset(ImageFolder(root=folderPath, transform=trainTransforms), indices=trainIndices)
-    validationDataset = Subset(ImageFolder(root=folderPath, transform=otherTransforms), indices = validationIndices)
+    trainDataset = Subset(
+        CustomDataset(ImageFolder(root=folderPath, transform=trainTransforms)), indices=trainIndices)
+    validationDataset = Subset(
+        CustomDataset(ImageFolder(root=folderPath, transform=otherTransforms)), indices = validationIndices)
     testDataset = Subset(
         CustomDataset(ImageFolder(root=folderPath, transform=otherTransforms)), indices=testIndices
     )
@@ -91,11 +93,12 @@ def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor
             - images: A tensor of shape (N, C, H, W) where N is the number of images,
               C is the number of channels, H is the height, and W is the width.
             - labels: A tensor of shape (N,) containing the corresponding labels for each image (values 0 or 1)
+            - names: A list with the name of the pets (not necessary)
+            - location A list with the city of the pets (not necessary)
     '''
     images = []
     labels = []
     names = []
-
 
     for batchImages, batchLabels, batchNames in loader:
         images.append(batchImages)
@@ -119,7 +122,6 @@ def extractDataFromLoader(loader: DataLoader)-> tuple[torch.Tensor, torch.Tensor
             location: str = parts[1]
             namesList[i] = actualName
             locationsList[i] = location
-
 
     return imagesTensor, labelsTensor, namesList, locationsList
 

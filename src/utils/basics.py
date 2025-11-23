@@ -23,10 +23,10 @@ def displayImage(sample: np.ndarray | Image.Image | torch.Tensor):
     if (isinstance(sample, Image.Image)):
         image = sample
     elif (isinstance(sample, np.ndarray)):
-        image: Image.Image = fromNdarrayToImage(sample)
-    elif (isinstance(sample, torch.Tensor)):
-        sample = sample.numpy()
         image = fromNdarrayToImage(sample)
+    elif (isinstance(sample, torch.Tensor)):
+        fromTensorToPilTransformation = v2.ToPILImage()
+        image = fromTensorToPilTransformation(sample)
     
     plt.imshow(image)
     plt.title(getattr(image, "title", "No title"))
@@ -46,9 +46,9 @@ def fromNdarrayToImage(sample: np.ndarray) -> Image.Image:
     if (sample.ndim == 1):
         data = unflattenRGBImage(data, channelsFirst=False)
     elif (sample.ndim == 3):
-        # Make sure that the format is (width, height, channels) and not (channels, width, height)
+        # Make sure that the format is (height, width, channels) and not (channels, height, width)
         if (sample.shape[1] == sample.shape[2]):
-            data = data.reshape((sample.shape[1], sample.shape[2], sample.shape[0]))
+            data = np.transpose(data, (1, 2, 0))
         
     image: Image.Image = Image.fromarray(data, mode="RGB")
     
@@ -248,7 +248,7 @@ def plotGrid(images: torch.Tensor, labels: torch.Tensor, names: list[str], locat
         axes[i].text(Config.SUBTITLE_X, Config.SUBTITLE_Y, locations[i], transform=axes[i].transAxes, ha="center", va="bottom", fontsize=Config.SUBTITLE_FONT_SIZE, color="gray")
         
 
-        axes[i].set_xlabel(f"{indexToClass[labels[i].item()]} ({certainty * 100:.2f}%) \n", color=color, labelpad=Config.LABEL_PADDING, fontsize=Config.LABEL_FONT_SIZE)
+        axes[i].set_xlabel(f"{indexToClass[predictedClass]} ({certainty * 100:.2f}%) \n", color=color, labelpad=Config.LABEL_PADDING, fontsize=Config.LABEL_FONT_SIZE)
         axes[i].set_xticks([])
         axes[i].set_yticks([])
 
